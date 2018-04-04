@@ -1,0 +1,6 @@
+[package]
+name = "Guess_the_word"
+version = "0.1.0"
+authors = ["i.andreev"]
+
+[dependencies]
