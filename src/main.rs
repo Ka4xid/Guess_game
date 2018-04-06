@@ -5,26 +5,30 @@ use std::string::*;
 use std::io::*;
 use std::fs::File;
 
-struct GuessHolder {
+
+struct GameRound {
     answer: String,
     placeholder: String,
 }
 
-impl GuessHolder {
+impl GameRound {
+    fn new(random_word: &String) -> Self {
+        let new_game = Self {   answer: random_word.to_string(),
+                                placeholder: "_".repeat(random_word.len()), };
 
-    fn new(word: &String) -> Self {
-        Self {
-            answer: word.to_string(),
-            placeholder: "_".repeat(word.len()),
-        }
+        println!("Secret word is {} symbols long {}",
+                 new_game.placeholder.len(),
+                 new_game.placeholder);
+
+        new_game
     }
 
-    fn replace_if_contains(&mut self, character: &String) {
-
+    fn guess(&mut self, character: &str) {    
         for (i, c) in self.answer.chars().enumerate() {
             if c == character.chars().next().unwrap() {
                 self.placeholder.remove(i);
                 self.placeholder.insert(i, c);
+                println!("There is such character! Your guess is {}", self.placeholder);
             }
         }
     }
@@ -38,63 +42,86 @@ impl GuessHolder {
     }
 }
 
+
+struct WordBase {
+    answers_base: Vec<String>,
+}
+
+impl WordBase {
+
+    fn new(filename: String) -> Self {
+
+        let mut temp_base: Vec<String> = Vec::new();
+
+        let f = File::open(filename);
+
+        match f {
+            Ok(handle) => {
+                let mut lines = BufReader::new(&handle).lines();
+
+                for (_i, line) in lines.enumerate() {
+                    temp_base.push(line.unwrap());
+                }
+            }
+            Err(err) => {
+                println!("Error: {}", err);
+            }
+        }
+
+        Self {
+            answers_base: temp_base,
+        }
+    }
+
+    fn get_random_word(&self) -> String {
+        let random_answer = self.answers_base[thread_rng().gen_range(0, self.answers_base.len())].clone();
+
+        random_answer
+    }
+}
+
 fn main() {
-    let random_answer = get_random_answer_from_base();
-    let mut guess = GuessHolder::new(&random_answer);
+    let word_base: WordBase = WordBase::new(String::from("base.txt"));
 
-    println!("Word is {} chars long: {}", guess.placeholder.len(), guess.placeholder);
+    loop {
+        let mut input = String::new();
 
-    while !guess.is_done() {
-
-        let mut character = String::new();
-
-        match std::io::stdin().read_line(&mut character) {
+        println!("Start new game? [y/n] ");
+        match stdin().read_line(&mut input) {
             Ok(_n) => {
-                if character.len() > 1 {
+                if input.trim() == "y" {
+                    play_process(word_base.get_random_word());
+                } else 
+                if input.trim() == "n" {
+                    std::process::exit(0);
+                }
+            }
+            Err(error) => println!("Error {}", error)
+        }
 
-                    character.truncate(1);
+        
+    }
 
-                    print!("\r");
+}
 
-                    println!("Your guess: {}", character);
 
-                    guess.replace_if_contains(&character);
+fn play_process(word: String) {
 
-                    println!("{}", guess.placeholder);
+    let mut game = GameRound::new(&word);
 
+    while !game.is_done() {
+        let mut input = String::new();
+        match stdin().read_line(&mut input) {
+            Ok(_n) => {
+                if input.trim().len() == 1 {
+                    game.guess(input.trim());
                 } else {
-                    println!("Enter 1 symbol!");
+                    println!("Enter only 1 character!");
                 }
             }
             Err(error) => println!("Unknown symbol {}!", error),
         }
     }
-
     println!("You win!");
-    
+
 }
-
-fn get_random_answer_from_base() -> String {
-
-  let mut answers_base: Vec<String> = Vec::new();
-
-    let f = File::open("base.txt");
-    match f {
-        Ok(handle) => {
-            let mut lines = BufReader::new(&handle).lines();
-
-            for (i, line) in lines.enumerate() {
-                answers_base.push(line.unwrap());
-            }
-        }
-        Err(err) => {
-            println!("Error: {}", err);
-        }
-    }
-
-    let random_number = thread_rng().gen_range(0, answers_base.len());
-
-    let random_answer = answers_base[random_number].clone();
-
-    random_answer
-} 
