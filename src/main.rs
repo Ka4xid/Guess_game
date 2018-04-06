@@ -23,13 +23,20 @@ impl GameRound {
         new_game
     }
 
-    fn guess(&mut self, character: &str) {    
+    fn guess(&mut self, character: &str) {
+        let mut char_found = false;
+
         for (i, c) in self.answer.chars().enumerate() {
             if c == character.chars().next().unwrap() {
                 self.placeholder.remove(i);
                 self.placeholder.insert(i, c);
-                println!("There is such character! Your guess is {}", self.placeholder);
+                char_found = true;
             }
+        }
+        if char_found {
+            println!("There is such character! Your guess is: {}", self.placeholder);
+        } else {
+            println!("There is no such character!");
         }
     }
 
@@ -93,6 +100,7 @@ fn main() {
                     play_process(word_base.get_random_word());
                 } else 
                 if input.trim() == "n" {
+                    println!("k bye!");
                     std::process::exit(0);
                 }
             }
