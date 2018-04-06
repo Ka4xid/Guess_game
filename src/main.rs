@@ -71,35 +71,30 @@ fn main() {
     }
 
     println!("You win!");
+    
 }
 
 fn get_random_answer_from_base() -> String {
-    let mut random_answer = String::new();
+
+  let mut answers_base: Vec<String> = Vec::new();
 
     let f = File::open("base.txt");
     match f {
         Ok(handle) => {
-            let mut b = BufReader::new(handle);
-            let mut lines = b.by_ref().lines();
-            let lines_count = lines.by_ref().count();
+            let mut lines = BufReader::new(&handle).lines();
 
-            let random_number = thread_rng().gen_range(0, lines_count);
-
-            println!("{}",lines_count);
-            match lines.nth(random_number) {
-                Some(line) => {
-                    random_answer = line.unwrap();
-                }
-                None => { 
-                    println!("Error");
-                }
+            for (i, line) in lines.enumerate() {
+                answers_base.push(line.unwrap());
             }
-            
         }
         Err(err) => {
             println!("Error: {}", err);
         }
     }
 
+    let random_number = thread_rng().gen_range(0, answers_base.len());
+
+    let random_answer = answers_base[random_number].clone();
+
     random_answer
-}
+} 
