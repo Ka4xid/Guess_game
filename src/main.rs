@@ -105,11 +105,8 @@ fn main() {
                 }
             }
             Err(error) => println!("Error {}", error)
-        }
-
-        
+        }   
     }
-
 }
 
 
@@ -131,5 +128,4 @@ fn play_process(word: String) {
         }
     }
     println!("You win!");
-
 }
